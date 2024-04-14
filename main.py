@@ -6,6 +6,34 @@ from prophet.plot import plot_plotly
 from plotly import graph_objs as go
 import pandas as pd
 
+# Define the HTML/CSS code for the full-screen timed image display
+image_html = """
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #f2f2f2; /* Set background color */
+    }
+    #image {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        /* Use a blurred version of your image as background */
+        background-image: url('https://img.freepik.com/free-vector/gradient-stock-market-concept_23-2149166929.jpg?size=626&ext=jpg&ga=GA1.1.2008272138.1712016000&semt=ais');
+        filter: blur(15px) brightness(100%); /* Apply blur effect */
+        background-size: cover;
+        background-position: center;
+    }
+</style>
+<div id="image"></div>
+"""
+
+# Display the full-screen timed image
+st.markdown(image_html, unsafe_allow_html=True)
+# st.sidebar.markdown(image_html, unsafe_allow_html=True)
 
 START = "2019-01-01"
 TODAY = date.today().strftime("%Y-%m-%d")
@@ -81,7 +109,8 @@ if company_name:
         "Value": [company_name, current_pr, market_cap_cr, net_profit_cr, dividend_yield]
     }
     df = pd.DataFrame(fundamental_data)
-    st.table(df.set_index('Attribute', drop=True))
+    df_styled = df.set_index('Attribute', drop=True).style.set_table_styles([{'selector': 'th','props': [('color', 'black')]}])
+    st.table(df_styled)
 
 
 def plot_raw_data():
@@ -150,9 +179,9 @@ st.write(fig2)
 
 st.image("footer.png")
 
-days = 180
+# days = 180
 
-@st.cache_data
+# @st.cache_data
 def predict_and_rank_stocks(data):
     all_stock_forecasts = []
     for symbol in stocks:
@@ -161,11 +190,16 @@ def predict_and_rank_stocks(data):
             df = df.rename(columns={"Date": "ds", "Close": "y"})  # Rename columns to match Prophet requirements
             m = Prophet()
             m.fit(df)
-            future = m.make_future_dataframe(periods=days)
+            future = m.make_future_dataframe(periods=period)
             forecast = m.predict(future)
-            future_prices = forecast.loc[forecast['ds'] == forecast['ds'].max(), 'yhat'].values[0]
-            current_price = df['y'].iloc[-1]  # Using 'y' column for current price
-            Expected_Returns = ((future_prices / current_price) - 1) * 100
+            # future_prices = forecast.loc[forecast['ds'] == forecast['ds'].max(), 'yhat'].values[0]
+            # current_price = df['y'].iloc[-1]  # Using 'y' column for current price
+            # Expected_Returns = ((future_prices / current_price) - 1) * 100
+            # all_stock_forecasts.append({'Symbol': symbol, 'Expected_Returns': Expected_Returns})
+            if forecast['trend'].iloc[-1] > df['y'].iloc[-1]:
+                Expected_Returns = round(((forecast["trend"].iloc[-1] - df['y'].iloc[-1])/ df["y"].iloc[-1]) * 100, 2)
+            else:
+                Expected_Returns = round(((forecast["trend"].iloc[-1] - df['y'].iloc[-1])/ df["y"].iloc[-1]) * 100, 2)
             all_stock_forecasts.append({'Symbol': symbol, 'Expected_Returns': Expected_Returns})
 
     # Convert the forecasts into a DataFrame
@@ -185,6 +219,8 @@ def predict_and_rank_stocks(data):
 
     return top_5_stocks_buying, top_5_stocks_selling
 
+
+
 all_data = pd.concat([load_data(symbol) for symbol in stocks], ignore_index=True)
 
 # Get the top 5 buying and selling stocks
@@ -194,7 +230,7 @@ top_5_buying_stocks, top_5_selling_stocks = predict_and_rank_stocks(all_data)
 top_5_buying_stocks.index = top_5_buying_stocks.index + 1
 top_5_selling_stocks.index = top_5_selling_stocks.index + 1
 
-st.sidebar.subheader("Top 5 Buying Stocks for next 6 months")
+st.sidebar.subheader(f"Top 5 Buying Stocks for next {n_months} {month}")
 buying_stocks_table = top_5_buying_stocks.style.apply(lambda x: ['color: green' if '%' in str(cell) else '' for cell in x])
 buying_stocks_table = buying_stocks_table.set_table_styles([{
     'selector': 'th',
@@ -203,7 +239,7 @@ buying_stocks_table = buying_stocks_table.set_table_styles([{
 st.sidebar.write(buying_stocks_table)
 
 # Display the top 5 selling stocks in the sidebar
-st.sidebar.subheader("Top 5 Selling Stocks for next 6 months")
+st.sidebar.subheader(f"Top 5 Selling Stocks for next {n_months} {month}")
 selling_stocks_table = top_5_selling_stocks.style.apply(lambda x: ['color: red' if '%' in str(cell) else '' for cell in x])
 selling_stocks_table = selling_stocks_table.set_table_styles([{
     'selector': 'th',
