@@ -1,6 +1,6 @@
-streamlit==0.89.0
-yfinance==0.1.64
-prophet==1.0.1
-plotly==5.3.1
-pandas==1.3.3
-numpy==1.21.2
+streamlit
+yfinance
+prophet
+plotly
+pandas
+numpy
