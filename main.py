@@ -37,6 +37,7 @@ st.markdown(image_html, unsafe_allow_html=True)
 
 START = "2019-01-01"
 TODAY = date.today().strftime("%Y-%m-%d")
+# TODAY = "2023-04-23"
 
 stock_market_emoji = "\U0001F4C8"
 st.header(f"Nifty 50 Stocks Price Prediction App {stock_market_emoji}")
@@ -112,6 +113,7 @@ if company_name:
     df_styled = df.set_index('Attribute', drop=True).style.set_table_styles([{'selector': 'th','props': [('color', 'black')]}])
     st.table(df_styled)
 
+# st.write(data.head())
 
 def plot_raw_data():
     fig = go.Figure()
