@@ -37,7 +37,6 @@ st.markdown(image_html, unsafe_allow_html=True)
 
 START = "2019-01-01"
 TODAY = date.today().strftime("%Y-%m-%d")
-# TODAY = "2023-04-23"
 
 stock_market_emoji = "\U0001F4C8"
 st.header(f"Nifty 50 Stocks Price Prediction App {stock_market_emoji}")
@@ -66,7 +65,7 @@ else:
 def load_data(ticker):
     data = yf.download(ticker, START, TODAY)
     data.reset_index(inplace=True)
-    data['Symbol'] = ticker  #update
+    data['Symbol'] = ticker  
     return data
 
 
@@ -181,9 +180,6 @@ st.write(fig2)
 
 st.image("footer.png")
 
-# days = 180
-
-# @st.cache_data
 def predict_and_rank_stocks(data):
     all_stock_forecasts = []
     for symbol in stocks:
@@ -194,10 +190,6 @@ def predict_and_rank_stocks(data):
             m.fit(df)
             future = m.make_future_dataframe(periods=period)
             forecast = m.predict(future)
-            # future_prices = forecast.loc[forecast['ds'] == forecast['ds'].max(), 'yhat'].values[0]
-            # current_price = df['y'].iloc[-1]  # Using 'y' column for current price
-            # Expected_Returns = ((future_prices / current_price) - 1) * 100
-            # all_stock_forecasts.append({'Symbol': symbol, 'Expected_Returns': Expected_Returns})
             if forecast['trend'].iloc[-1] > df['y'].iloc[-1]:
                 Expected_Returns = round(((forecast["trend"].iloc[-1] - df['y'].iloc[-1])/ df["y"].iloc[-1]) * 100, 2)
             else:
